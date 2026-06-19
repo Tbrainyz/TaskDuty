@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import logo from "../assets/logo.svg";
@@ -10,8 +10,7 @@ type FormErrors = { password?: string; confirmPassword?: string; api?: string };
 
 const EyeOpen = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-    <circle cx="12" cy="12" r="3"/>
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
   </svg>
 );
 const EyeClosed = () => (
@@ -23,9 +22,10 @@ const EyeClosed = () => (
 );
 
 const ResetPassword = () => {
-  const { token }         = useParams<{ token: string }>();
-  const { resetPassword } = useAuth();
-  const navigate          = useNavigate();
+  const { resetPassword }  = useAuth();
+  const navigate           = useNavigate();
+  const location           = useLocation();
+  const resetToken         = (location.state as { resetToken?: string })?.resetToken || "";
 
   const [password,        setPassword]        = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -34,10 +34,16 @@ const ResetPassword = () => {
   const [errors,          setErrors]          = useState<FormErrors>({});
   const [submitting,      setSubmitting]      = useState(false);
 
+  // Redirect if no reset token
+  if (!resetToken) {
+    navigate("/forgot-password");
+    return null;
+  }
+
   const validate = (): boolean => {
     const e: FormErrors = {};
     if (!password)                e.password        = "Password is required";
-    else if (password.length < 6) e.password        = "Password must be at least 6 characters";
+    else if (password.length < 6) e.password        = "Must be at least 6 characters";
     if (!confirmPassword)         e.confirmPassword = "Please confirm your password";
     else if (password !== confirmPassword) e.confirmPassword = "Passwords do not match";
     setErrors(e);
@@ -46,16 +52,15 @@ const ResetPassword = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate() || !token) return;
+    if (!validate()) return;
     setSubmitting(true);
     setErrors({});
     try {
-      const msg = await resetPassword(token, password, confirmPassword);
+      const msg = await resetPassword(resetToken, password, confirmPassword);
       toast.success(msg);
       navigate("/login");
     } catch (err: unknown) {
-      const axiosMsg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      const msg = axiosMsg || "Reset failed. Link may have expired.";
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Reset failed. Please try again.";
       setErrors({ api: msg });
       toast.error(msg);
     } finally {
@@ -66,7 +71,7 @@ const ResetPassword = () => {
   return (
     <div style={{ minHeight: "100vh", display: "flex", backgroundColor: "#f0f0f5" }}>
 
-      {/* ── Left — illustration ── */}
+      {/* Left — illustration */}
       <div style={{
         flex: 1, display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
@@ -78,25 +83,26 @@ const ResetPassword = () => {
           <span style={{ fontFamily: F, fontWeight: 700, fontSize: 26, color: "#2D0050" }}>TaskDuty</span>
         </Link>
         <div style={{ border: "2px solid #7c3aed", borderRadius: 14, overflow: "hidden", backgroundColor: "white", width: "100%", maxWidth: 420 }}>
-          <img src={broIllustration} alt="TaskDuty illustration" style={{ width: "100%", height: "auto", display: "block" }} />
+          <img src={broIllustration} alt="illustration" style={{ width: "100%", height: "auto", display: "block" }} />
         </div>
         <p style={{ fontFamily: F, fontSize: 14, color: "#7c3aed", marginTop: 24, fontWeight: 600, textAlign: "center" }}>
           Manage all your tasks in one place
         </p>
       </div>
 
-      {/* ── Right — form ── */}
+      {/* Right — form */}
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 32px" }}>
         <div style={{ width: "100%", maxWidth: 440 }}>
+
+          <div style={{ fontSize: 48, marginBottom: 16 }}>🔒</div>
 
           <h2 style={{ fontFamily: F, fontWeight: 700, fontSize: 28, color: "#0f0f0f", marginBottom: 6 }}>
             Set new password
           </h2>
           <p style={{ fontFamily: F, fontSize: 14, color: "#6b7280", marginBottom: 32 }}>
-            Choose a strong password for your account
+            OTP verified ✓ — Choose a strong new password.
           </p>
 
-          {/* API error banner */}
           {errors.api && (
             <div style={{
               backgroundColor: "#fff5f5", border: "1.5px solid #fca5a5",
@@ -110,7 +116,6 @@ const ResetPassword = () => {
 
           <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
-            {/* New Password */}
             <div className="fl-wrap">
               <label>New Password</label>
               <div style={{ position: "relative" }}>
@@ -131,7 +136,6 @@ const ResetPassword = () => {
               {errors.password && <p style={errStyle}>{errors.password}</p>}
             </div>
 
-            {/* Confirm Password */}
             <div className="fl-wrap">
               <label>Confirm New Password</label>
               <div style={{ position: "relative" }}>
@@ -162,11 +166,6 @@ const ResetPassword = () => {
               {submitting ? "Resetting..." : "Reset Password"}
             </button>
 
-            <p style={{ fontFamily: F, fontSize: 14, color: "#6b7280", textAlign: "center" }}>
-              <Link to="/login" style={{ color: "#7c3aed", fontWeight: 700, textDecoration: "none" }}>
-                ← Back to login
-              </Link>
-            </p>
           </form>
         </div>
       </div>

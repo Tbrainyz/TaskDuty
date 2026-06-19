@@ -200,3 +200,22 @@ body {
     display: none !important;
   }
 }
+
+/* ── Navbar responsive ──────────────────────────────────────── */
+.navbar-mobile-trigger { display: none; }
+.navbar-mobile-panel { display: none; }
+
+@media (max-width: 768px) {
+  .navbar-bar {
+    padding: 8px 16px !important;
+  }
+  .navbar-desktop {
+    display: none !important;
+  }
+  .navbar-mobile-trigger {
+    display: flex !important;
+  }
+  .navbar-mobile-panel {
+    display: flex !important;
+  }
+}

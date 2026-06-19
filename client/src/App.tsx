@@ -12,11 +12,11 @@ import EditPage       from "./pages/EditPage";
 import Login          from "./pages/Login";
 import Register       from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
+import VerifyOtp      from "./pages/VerifyOtp";
 import ResetPassword  from "./pages/ResetPassword";
 import Profile        from "./pages/Profile";
 import ErrorPage      from "./pages/Error";
 
-// Redirect logged-in users away from auth pages
 const GuestRoute = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
   return user ? <Navigate to="/alltasks" replace /> : <>{children}</>;
@@ -25,23 +25,17 @@ const GuestRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <BrowserRouter>
-      <ToastContainer
-        position="top-center"
-        autoClose={3000}
-        hideProgressBar
-        closeOnClick
-        pauseOnHover
-        theme="light"
-      />
+      <ToastContainer position="top-center" autoClose={3000} hideProgressBar closeOnClick pauseOnHover theme="light" />
       <Routes>
         {/* Public */}
         <Route path="/" element={<CoverPage />} />
 
         {/* Guest only */}
-        <Route path="/login"    element={<GuestRoute><Login /></GuestRoute>} />
-        <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
-        <Route path="/forgot-password"       element={<ForgotPassword />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/login"            element={<GuestRoute><Login /></GuestRoute>} />
+        <Route path="/register"         element={<GuestRoute><Register /></GuestRoute>} />
+        <Route path="/forgot-password"  element={<ForgotPassword />} />
+        <Route path="/verify-otp"       element={<VerifyOtp />} />
+        <Route path="/reset-password"   element={<ResetPassword />} />
 
         {/* Protected */}
         <Route path="/alltasks" element={<ProtectedRoute><AllTasks /></ProtectedRoute>} />
