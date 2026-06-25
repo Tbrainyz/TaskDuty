@@ -1,122 +1,138 @@
-# TaskDuty — Task Manager App
+# TaskDuty — Full Stack Task Manager
 
-A full-stack task management web application built with the MERN stack (MongoDB, Express, React, Node.js) and TypeScript. TaskDuty allows users to create, view, update, and delete tasks with category tagging, due date tracking, and completion status management.
+A full-stack MERN task management app built with TypeScript.
 
+**Live Demo:** https://task-duty-front.vercel.app
 
+---
+
+## Project Structure
+
+```
+TaskDuty/
+├── client/     ← React 19 + TypeScript + Vite + Tailwind CSS v4
+├── server/     ← Node.js + Express + MongoDB + TypeScript
+├── package.json
+└── README.md
+```
+
+---
 
 ## Features
 
-- Create tasks with a title, description, due date, and category (Work / Personal / Urgent)
-- View all tasks in a clean card-based layout
-- Edit any task's details or mark it as completed
-- Delete tasks with confirmation prompt
-- Category colour coding — Urgent (red), Personal (teal), Work (purple)
-- Toast notifications for all CRUD actions
+### Week 1 — Core CRUD
+- Create, Read, Update, Delete tasks
+- Filter by category (Work / Personal / Urgent) and completion status
 - Form validation — all fields required, due date cannot be in the past
-- Loading skeleton cards while fetching data
-- 404 error page for unmatched routes
+- Responsive UI with Signika Negative font
+
+### Week 2 — Authentication
+- JWT-based register and login (username or email)
+- Bcrypt password hashing
+- Protected routes — users only see their own tasks
+- OTP-based password reset via Brevo email
+- Profile page — update username and change password
+- Navbar avatar dropdown with logout
+
+### Week 3 — Soft Delete / Trash
+- Tasks are soft deleted (moved to trash, not removed from DB)
+- Dedicated Trash page to view deleted tasks
+- Restore tasks from trash back to active list
+- Permanently delete tasks from trash
+- Confirmation modal replaces browser alert
 
 ---
 
 ## Tech Stack
 
-### Frontend
-| Technology | Version |
+| Layer | Tech |
 |---|---|
-| React | 19 |
-| TypeScript | 5 |
-| Vite | 6 |
-| Tailwind CSS | 4 |
-| React Router DOM | 7 |
-| Axios | 1.7 |
-| React Toastify | 11 |
+| Frontend | React 19, TypeScript, Vite, Tailwind CSS v4 |
+| Backend | Node.js, Express 5, TypeScript |
+| Database | MongoDB Atlas + Mongoose |
+| Auth | JWT + Bcrypt |
+| Email | Brevo (transactional API) |
+| Hosting | Vercel (client) + Render (server) |
 
-### Backend
-| Technology | Version |
-|---|---|
-| Node.js | 22 |
-| Express | 5 |
-| TypeScript | 5 |
-| MongoDB | Atlas |
-| Mongoose | 9 |
+---
 
+## Setup
 
-
-## Project Structure
-
+### Server
+```bash
+cd server
+npm install
+cp .env.example .env    # fill in your values
+npm run dev
 ```
-taskduty/                        # Frontend
-├── src/
-│   ├── api/
-│   │   └── axios.ts             # Axios instance with base URL config
-│   ├── assets/                  # SVG and PNG assets
-│   ├── components/
-│   │   ├── NavBar.tsx           # Fixed navigation bar
-│   │   └── SkeletonCard.tsx     # Loading placeholder cards
-│   ├── context/
-│   │   └── TasksContext.tsx     # Global state + all CRUD logic
-│   ├── layout/
-│   │   └── Layout.tsx           # Route wrapper
-│   ├── pages/
-│   │   ├── CoverPage.tsx        # Landing / hero page
-│   │   ├── AllTasks.tsx         # Task list with edit and delete
-│   │   ├── NewTask.tsx          # Create task form
-│   │   ├── EditPage.tsx         # Edit task form
-│   │   └── Error.tsx            # 404 page
-│   ├── types/
-│   │   └── task.ts              # TypeScript interfaces
-│   ├── App.tsx                  # Routes definition
-│   └── main.tsx                 # Entry point
-└── .env                         # VITE_API_URL
 
-taskduty-back/                   # Backend
-├── src/
-│   ├── config/
-│   │   └── db.ts                # MongoDB connection
-│   ├── controllers/
-│   │   └── TaskController.ts    # CRUD handlers
-│   ├── models/
-│   │   └── TaskModel.ts         # Mongoose schema
-│   ├── routes/
-│   │   └── TaskRoutes.ts        # Express routes
-│   └── server.ts                # Entry point
-└── .env                         # MONGO_URI, PORT, FRONTEND_URL
+### Client
+```bash
+cd client
+npm install
+cp .env.example .env    # set VITE_API_URL
+npm run dev
+```
+
+### Environment Variables
+
+**server/.env**
+```
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+FRONTEND_URL=http://localhost:5173
+BREVO_API_KEY=your_brevo_api_key
+BREVO_SENDER_EMAIL=your_verified_email
+BREVO_SENDER_NAME=TaskDuty
+```
+
+**client/.env**
+```
+VITE_API_URL=http://localhost:5000
 ```
 
 ---
 
 ## API Endpoints
 
-Base URL: `https://taskduty-back.onrender.com/api`
-
-| Method | Endpoint | Description |
+### Auth
+| Method | Route | Description |
 |---|---|---|
-| GET | `/tasks` | Get all tasks |
-| POST | `/tasks` | Create a new task |
-| PUT | `/tasks/:id` | Update a task |
-| DELETE | `/tasks/:id` | Delete a task |
+| POST | /api/auth/register | Create account |
+| POST | /api/auth/login | Login |
+| POST | /api/auth/forgot-password | Send OTP |
+| POST | /api/auth/verify-otp | Verify OTP |
+| POST | /api/auth/reset-password | Reset password |
+| PUT | /api/auth/update-password | Change password (protected) |
+| PUT | /api/auth/update-username | Change username (protected) |
 
-### Task Object
-
-```json
-{
-  "_id": "664abc123...",
-  "title": "Finish project report",
-  "description": "Write and submit the Q2 report",
-  "dueDate": "2025-08-01T00:00:00.000Z",
-  "category": "Work",
-  "completed": false,
-  "createdAt": "2025-07-01T10:00:00.000Z",
-  "updatedAt": "2025-07-01T10:00:00.000Z"
-}
-```
-
-Category must be one of: `Work` | `Personal` | `Urgent`
+### Tasks (all protected)
+| Method | Route | Description |
+|---|---|---|
+| GET | /api/tasks | Get all active tasks |
+| POST | /api/tasks | Create task |
+| PUT | /api/tasks/:id | Update task |
+| DELETE | /api/tasks/:id | Soft delete (move to trash) |
+| GET | /api/tasks/trash | Get trashed tasks |
+| PUT | /api/tasks/:id/restore | Restore from trash |
+| DELETE | /api/tasks/:id/permanent | Permanently delete |
 
 ---
 
+## Git Branch Strategy (Week 3)
 
+```bash
+# Feature branch created for soft delete
+git checkout -b feature/soft-delete
 
-## Author
+# After implementation
+git add .
+git commit -m "feat: implement soft delete with trash page"
+git push origin feature/soft-delete
 
-Built by **Wale** as part of a full-stack development assessment.
+# Merge into main
+git checkout main
+git merge feature/soft-delete
+git push origin main
+```

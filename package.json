@@ -1,0 +1,9 @@
+{
+  "name": "taskduty",
+  "version": "1.0.0",
+  "description": "TaskDuty — Full Stack Task Manager (MERN + TypeScript)",
+  "scripts": {
+    "client": "cd client && npm run dev",
+    "server": "cd server && npm run dev"
+  }
+}
